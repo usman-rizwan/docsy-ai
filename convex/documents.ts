@@ -13,8 +13,11 @@ export const createDocument = mutation({
     clerkId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const { clerkId, ...rest } = args;
+
     const documentId = await ctx.db.insert("documents", {
-      ...args,
+      ...rest,
+      ...(clerkId !== undefined ? { clerkId } : {}),
       status: "uploading",
       uploadedAt: Date.now(),
     });
