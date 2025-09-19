@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,6 +24,8 @@ import { cn } from '@/lib/utils';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
 import { useUser } from '@clerk/nextjs';
+import { toast } from 'sonner';
+
 
 interface Message {
   _id: string;
@@ -33,23 +35,52 @@ interface Message {
   sources?: string[];
 }
 
-export default function ChatPage({ params }: any) {
+export default function ChatPage(props: any) {
+  const params = React.use(props.params);
+  const chatId = params.chatId;
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null); 
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { user } = useUser();
+  console.log('user', user);
 
-  const chat = useQuery(api.chats.getChatForUser, { 
-    chatId: params.chatId as any, 
-    clerkId: user?.id || '' 
+
+  const chat = useQuery(api.chats.getChatForUser, {
+    chatId: chatId as any,
+    clerkId: user?.id || ''
   });
-  const messages = useQuery(api.chats.getMessagesByChat, { chatId: params.chatId as any });
-  const document = useQuery(api.documents.getDocument, {
-    documentId: chat?.documentId!
-  });
+  const isChatLoading = typeof chat === 'undefined';
+  const isChatNotFound = !isChatLoading && !chat;
+
+  if (isChatNotFound) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+          <div className="text-center">
+            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-lg font-semibold text-foreground mb-2">Chat Not Found</h2>
+            <p className="text-muted-foreground text-sm">
+              This chat doesn’t exist or you don’t have permission to view it.
+            </p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+
+  const messages = useQuery(
+    api.chats.getMessagesByChat,
+    chat?.documentId ? { chatId } : 'skip'
+  );
+
+  const pdfDocument = useQuery(
+    api.documents.getDocument,
+    chat?.documentId ? { documentId: chat.documentId } : 'skip'
+  );
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -83,8 +114,7 @@ export default function ChatPage({ params }: any) {
         throw new Error('Failed to send message');
       }
 
-      // Wait for the response to complete
-      // The UI will update automatically via Convex real-time queries
+
       const result = await response.json();
 
     } catch (error) {
@@ -112,6 +142,49 @@ export default function ChatPage({ params }: any) {
       });
   };
 
+
+
+  const handleDownload = (fileUrl: string, fileName = 'document.pdf') => {
+    if (!fileUrl) {
+      console.error('File URL is missing');
+      return;
+    }
+
+    // Create a promise for the download process
+    const downloadPromise = new Promise<void>(async (resolve, reject) => {
+      try {
+        const response = await fetch(fileUrl, { method: 'GET' });
+        if (!response.ok) throw new Error('Failed to fetch file');
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+
+        document.body.appendChild(link);
+        link.click();
+
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        resolve()
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    toast.promise(downloadPromise, {
+      loading: 'Downloading file...',
+      success: () => 'Download  successfully!',
+      error: (err) => `Download failed: ${err.message || 'Unknown error'}`,
+    });
+  };
+
+
+
+
   if (!chat || !messages) {
     return (
       <AppLayout>
@@ -137,14 +210,14 @@ export default function ChatPage({ params }: any) {
               </div>
               <div>
                 <h1 className="font-semibold text-foreground">{chat.title}</h1>
-                <p className="text-sm text-muted-foreground">{document?.fileName || 'PDF Document'}</p>
+                <p className="text-sm text-muted-foreground">{pdfDocument?.fileName || 'PDF Document'}</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
               {/* <Button variant="ghost" size="sm">
                 <Share className="h-4 w-4" />
               </Button> */}
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" onClick={() => handleDownload(pdfDocument?.fileUrl, pdfDocument?.fileName)}>
                 <Download className="h-4 w-4" />
               </Button>
               {/* <Button variant="ghost" size="sm">

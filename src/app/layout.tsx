@@ -21,10 +21,10 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <ConvexClientProvider>
-        <html lang="en">
+        <html lang="en" suppressHydrationWarning suppressContentEditableWarning>
           <body className={inter.className}>
             {children}
-              <Toaster />
+              <Toaster richColors position='top-right' />
           </body>
         </html>
       </ConvexClientProvider>

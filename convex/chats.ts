@@ -53,7 +53,6 @@ export const getChat = query({
   },
 });
 
-// Get chat by ID with user validation (using Clerk ID)
 export const getChatForUser = query({
   args: { 
     chatId: v.id("chats"),
@@ -62,7 +61,7 @@ export const getChatForUser = query({
   handler: async (ctx, args) => {
     const chat = await ctx.db.get(args.chatId);
     if (!chat || chat.clerkId !== args.clerkId) {
-      throw new Error("Chat not found or access denied");
+      return null;
     }
     return chat;
   },
