@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
-// Create a new document record
 export const createDocument = mutation({
   args: {
     title: v.string(),
@@ -10,14 +9,11 @@ export const createDocument = mutation({
     fileSize: v.number(),
     mimeType: v.string(),
     userId: v.optional(v.id("users")),
-    clerkId: v.optional(v.string()),
+    clerkId: v.string(),
   },
   handler: async (ctx, args) => {
-    const { clerkId, ...rest } = args;
-
     const documentId = await ctx.db.insert("documents", {
-      ...rest,
-      ...(clerkId !== undefined ? { clerkId } : {}),
+      ...args,
       status: "uploading",
       uploadedAt: Date.now(),
     });
@@ -45,6 +41,7 @@ export const updateDocumentStatus = mutation({
         }))
       })),
     })),
+    processedAt: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const { documentId, ...updates } = args;
@@ -92,7 +89,7 @@ export const getDocument = query({
 // Get documents by status
 export const getDocumentsByStatus = query({
   args: { 
-    userId: v.string(),
+    userId: v.id("users"),
     status: v.union(
       v.literal("uploading"),
       v.literal("processing"),
@@ -114,7 +111,7 @@ export const getDocumentsByStatus = query({
 export const updateDocumentUser = mutation({
   args: {
     documentId: v.id("documents"),
-    userId: v.string(),
+    userId: v.id("users"),
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.documentId, {
