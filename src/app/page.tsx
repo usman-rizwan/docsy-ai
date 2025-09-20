@@ -63,11 +63,11 @@ export default function LandingPage() {
               </Button>
             </Link>
           </SignedIn>
-          <Link href="/dashboard">
+          {/* <Link href="/dashboard">
             <Button variant="outline" size="lg" className="text-lg px-8">
               View Demo
             </Button>
-          </Link>
+          </Link> */}
         </div>
       </section>
 
