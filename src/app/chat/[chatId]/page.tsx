@@ -25,6 +25,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
 import { useUser } from '@clerk/nextjs';
 import { toast } from 'sonner';
+import { Id } from '../../../../convex/_generated/dataModel';
 
 
 interface Message {
@@ -41,7 +42,7 @@ interface ChatPageProps {
 }
 
 export default function ChatPage({ params }: ChatPageProps) {
-    // const params = React.use(props.params);
+  // const params = React.use(props.params);
   const chatId = params.chatId;
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -79,8 +80,9 @@ export default function ChatPage({ params }: ChatPageProps) {
 
   const messages = useQuery(
     api.chats.getMessagesByChat,
-    chat?.documentId ? { chatId } : 'skip'
+    chat?.documentId ? { chatId: chatId as Id<"chats"> } : 'skip'
   );
+
 
   const pdfDocument = useQuery(
     api.documents.getDocument,
