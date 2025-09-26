@@ -34,9 +34,14 @@ interface Message {
   createdAt: number;
   sources?: string[];
 }
+interface ChatPageProps {
+  params: {
+    chatId: string;
+  };
+}
 
-export default function ChatPage(props: any) {
-  const params = React.use(props.params);
+export default function ChatPage({ params }: ChatPageProps) {
+    // const params = React.use(props.params);
   const chatId = params.chatId;
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);

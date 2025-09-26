@@ -19,6 +19,7 @@ import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function UploadPage() {
   const { user } = useUser();
@@ -44,6 +45,7 @@ export default function UploadPage() {
       const latestCompletedFile = completedFiles[completedFiles.length - 1];
       if (latestCompletedFile.chatId) {
         console.log('Redirecting to chat:', latestCompletedFile.chatId);
+        toast.success('File processed! Redirecting to chat...');
         router.push(`/chat/${latestCompletedFile.chatId}`);
 
       }
@@ -54,7 +56,7 @@ export default function UploadPage() {
     switch (status) {
       case 'uploading':
       case 'processing':
-        return <AlertCircle className="h-5 w-5 text-blue-600 animate-spin" />;
+        return <AlertCircle className="h-5 w-5 text-blue-600 " />;
       case 'completed':
         return <CheckCircle className="h-5 w-5 text-green-600" />;
       case 'error':

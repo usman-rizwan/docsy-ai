@@ -33,7 +33,7 @@ export const getChatsByUser = query({
   },
 });
 
-// Get chats by Clerk ID (for backward compatibility)
+// Get chats by Clerk ID 
 export const getChatsByClerkId = query({
   args: { clerkId: v.string() },
   handler: async (ctx, args) => {

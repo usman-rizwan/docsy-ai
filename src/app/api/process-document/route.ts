@@ -25,25 +25,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Mark document as processing
     await convex.mutation(api.documents.updateDocumentStatus, {
       documentId,
       status: "processing",
     });
 
-    // Fetch the PDF
     const response = await fetch(fileUrl);
     if (!response.ok) {
       throw new Error(`Failed to fetch PDF: ${response.status}`);
     }
     const data = await response.blob();
 
-    // Load and extract text
     const loader = new WebPDFLoader(data);
     const docs = await loader.load();
     const pdfTextContent = docs.map((doc) => doc.pageContent).join("\n\n");
 
-    // Split into chunks
     const textSplitter = new RecursiveCharacterTextSplitter({
       chunkSize: 800,
       chunkOverlap: 120,
@@ -58,13 +54,11 @@ export async function POST(request: NextRequest) {
       },
     }));
 
-    // Save chunks
     await convex.mutation(api.documentChunks.createDocumentChunks, {
       documentId,
       chunks,
     });
 
-    // Fetch document to get title
     const document = await convex.query(api.documents.getDocument, { documentId });
 
     // Create chat
@@ -74,7 +68,6 @@ export async function POST(request: NextRequest) {
       documentId,
     });
 
-    // Mark document as completed
     await convex.mutation(api.documents.updateDocumentStatus, {
       documentId,
       status: "completed",
@@ -83,7 +76,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, chatId });
   } catch (error) {
     console.error("Error processing document:", error);
-    // Try to include details if available
     return NextResponse.json(
       { error: "Failed to process document" },
       { status: 500 }
