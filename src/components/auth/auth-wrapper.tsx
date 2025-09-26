@@ -45,7 +45,7 @@ export function UserButton() {
 export function SignInButtonWrapper({ children }: { children: ReactNode }) {
   return (
     <SignInButton mode="modal">
-      {children}
+       <div>{children}</div>
     </SignInButton>
   );
 }
@@ -53,7 +53,7 @@ export function SignInButtonWrapper({ children }: { children: ReactNode }) {
 export function SignUpButtonWrapper({ children }: { children: ReactNode }) {
   return (
     <SignUpButton mode="modal">
-      {children}
+      <div>{children}</div>
     </SignUpButton>
   );
 }
