@@ -46,11 +46,11 @@ export async function POST(request: NextRequest) {
       .map((chunk) => chunk.content)
       .join("\n\n")
       .slice(0, 4000);
-    console.log('context', context);
+    // console.log('context', context);
 
 
     const model = new ChatGoogleGenerativeAI({
-      model: "gemini-2.0-flash",
+      model: "gemini-3-flash-preview",
       temperature: 0.1,
       apiKey: process.env.GOOGLE_API_KEY,
     });
